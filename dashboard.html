@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>{{ version }}</title>
+<style>
+body{font-family:Arial;margin:0;background:#eef4fb;color:#00112b}
+header{background:#123b63;color:white;padding:22px;display:flex;justify-content:space-between}
+section{background:white;margin:16px;padding:20px;border-radius:14px;border:1px solid #cbd5e1}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+input,select,textarea{padding:10px;border:1px solid #cbd5e1;border-radius:8px}
+button{background:#16813a;color:white;border:0;border-radius:8px;padding:11px 16px;font-weight:bold}
+table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border:1px solid #cbd5e1;padding:9px}th{background:#e8f0fb}
+.nav a{background:#dbeafe;color:#00112b;padding:10px 14px;border-radius:8px;text-decoration:none;margin-right:8px}
+</style>
+<script>
+function fillProduct(){
+ const sel=document.getElementById("roc_product");
+ const opt=sel.options[sel.selectedIndex];
+ document.getElementById("roc_item").value=opt.dataset.name||"";
+ document.getElementById("roc_hsn").value=opt.dataset.hsn||"";
+ document.getElementById("roc_rate").value=opt.dataset.price||"";
+ document.getElementById("roc_gst").value=opt.dataset.gst||"";
+ document.getElementById("roc_uom").value=opt.dataset.unit||"Nos";
+}
+function fillInvoiceProduct(){
+ const sel=document.getElementById("inv_product");
+ const opt=sel.options[sel.selectedIndex];
+ document.getElementById("inv_rate").value=opt.dataset.price||"";
+ document.getElementById("inv_gst").value=opt.dataset.gst||"";
+}
+</script>
+</head>
+<body>
+<header><h1>{{ version }}</h1><div><a style="color:white" href="/logout">Logout</a></div></header>
+<section><h2>Welcome, {{ session.user }} | {{ login_type }}</h2>
+<p><b>Current Client:</b> {{ client.company_name }} | {{ client.email }}</p>
+</section>
+
+<section>
+<h2>Customer Master</h2>
+<form method="post" action="/customer/save" class="grid">
+<input name="name" placeholder="Customer Name" required>
+<input name="gstin" placeholder="GSTIN">
+<input name="pan" placeholder="PAN">
+<input name="phone" placeholder="Phone">
+<input name="email" placeholder="Email">
+<input name="state" placeholder="State">
+<input name="state_code" placeholder="State Code">
+<input name="due_days" placeholder="Due Days" value="15">
+<input name="address" placeholder="Bill To Address">
+<input name="shipping_name" placeholder="Ship To Name">
+<input name="shipping_address" placeholder="Ship To Address">
+<input name="shipping_state" placeholder="Ship To State">
+<input name="shipping_state_code" placeholder="Ship To State Code">
+<button>Save Customer</button>
+</form>
+</section>
+
+<section>
+<h2>Product Master</h2>
+<form method="post" action="/product/save" class="grid">
+<input name="name" placeholder="Product / Service" required>
+<input name="hsn" placeholder="HSN/SAC">
+<input name="price" placeholder="Rate" type="number" step="0.01">
+<input name="gst" placeholder="GST %" type="number" step="0.01">
+<input name="unit" placeholder="Unit" value="Nos">
+<button>Save Product</button>
+</form>
+</section>
+
+<section>
+<h2>Rate Contract</h2>
+<form method="post" action="/roc/save" class="grid">
+<select name="customer_id" required>
+<option value="">Select Customer/Vendor</option>
+{% for c in customers %}<option value="{{c.id}}">{{c.name}}</option>{% endfor %}
+</select>
+<select name="product_id" id="roc_product" onchange="fillProduct()">
+<option value="">Manual / Select Product</option>
+{% for p in products %}<option value="{{p.id}}" data-name="{{p.name}}" data-hsn="{{p.hsn}}" data-price="{{p.price}}" data-gst="{{p.gst}}" data-unit="{{p.unit}}">{{p.name}}</option>{% endfor %}
+</select>
+<input name="item_name" id="roc_item" placeholder="Item / Service Name">
+<input name="hsn" id="roc_hsn" placeholder="HSN/SAC">
+<input name="uom" id="roc_uom" value="Nos">
+<input name="approved_rate" id="roc_rate" placeholder="Approved Rate" type="number" step="0.01">
+<input name="gst" id="roc_gst" placeholder="GST %" type="number" step="0.01">
+<input name="valid_from" type="date">
+<input name="valid_to" type="date">
+<input name="status" value="Active">
+<input name="remarks" placeholder="Remarks">
+<button>Save Rate Contract</button>
+</form>
+</section>
+
+<section>
+<h2>Create Invoice</h2>
+<form method="post" action="/invoice/save" class="grid">
+<select name="invoice_type"><option>Tax Invoice</option><option>Proforma Invoice</option><option>Quotation</option></select>
+<select name="branch_id">{% for b in branches %}<option value="{{b.id}}">{{b.name}}</option>{% endfor %}</select>
+<input name="invoice_no" placeholder="Invoice No (auto if blank)">
+<input name="invoice_date" type="date">
+<input name="due_date" type="date">
+<select name="customer_id" required><option value="">Select Customer</option>{% for c in customers %}<option value="{{c.id}}">{{c.name}}</option>{% endfor %}</select>
+<select name="product_id" id="inv_product" onchange="fillInvoiceProduct()" required>
+<option value="">Select Product</option>
+{% for p in products %}<option value="{{p.id}}" data-price="{{p.price}}" data-gst="{{p.gst}}">{{p.name}}</option>{% endfor %}
+</select>
+<input name="qty" value="1" type="number">
+<input name="rate" id="inv_rate" placeholder="Rate" type="number" step="0.01">
+<input name="gst" id="inv_gst" placeholder="GST %" type="number" step="0.01">
+<button>Save Invoice</button>
+</form>
+</section>
+
+<section>
+<h2>Invoices</h2>
+<table><tr><th>No</th><th>Date</th><th>Customer</th><th>Total</th><th>Status</th><th>Action</th></tr>
+{% for i in invoices %}
+<tr><td>{{i.invoice_no}}</td><td>{{i.invoice_date}}</td><td>{{i.customer_name}}</td><td>₹{{"%.2f"|format(i.total)}}</td><td>{{i.status}}</td><td><a href="/invoice/{{i.id}}" target="_blank">View/Print</a></td></tr>
+{% endfor %}
+</table>
+</section>
+
+<section>
+<h2>Saved Masters</h2>
+<table><tr><th>Customers</th><td>{{customers|length}}</td><th>Products</th><td>{{products|length}}</td><th>ROC</th><td>{{rocs|length}}</td></tr></table>
+</section>
+</body>
+</html>

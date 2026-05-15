@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>{{ inv.invoice_no }}</title>
+<style>
+body{font-family:Arial;background:#eef2f7;margin:0;padding:24px;color:#111}
+.toolbar{text-align:right;max-width:1000px;margin:auto;margin-bottom:12px}
+button{background:#0f3157;color:#fff;border:0;border-radius:8px;padding:10px 15px}
+.wrap{background:#fff;max-width:1000px;margin:auto;border-radius:14px;padding:28px;box-shadow:0 8px 24px #0002}
+.top{display:flex;justify-content:space-between;border-bottom:2px solid #0f3157;padding-bottom:16px}
+h1,h2{color:#0f3157}.boxes{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.box{background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:14px}
+table{width:100%;border-collapse:collapse;margin-top:18px}th,td{border:1px solid #cbd5e1;padding:10px}th{background:#0f3157;color:#fff}.r{text-align:right}
+.total{text-align:right;font-size:22px;font-weight:bold;margin-top:18px}.footer{text-align:center;color:#64748b;font-size:12px;border-top:1px solid #cbd5e1;margin-top:24px;padding-top:10px}
+@media print{body{background:white;padding:0}.toolbar{display:none}.wrap{box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="toolbar"><button onclick="window.print()">Print / Save PDF</button></div>
+<div class="wrap">
+<div class="top">
+<div><h1>{{ client.company_name }}</h1><p><b>GSTIN:</b> {{ client.gstin or '-' }} | <b>PAN:</b> {{ client.pan or '-' }}</p><p>{{ client.address or '-' }}</p></div>
+<div><h2>{{ inv.invoice_type }}</h2><p><b>No:</b> {{ inv.invoice_no }}</p><p><b>Date:</b> {{ inv.invoice_date }}</p><p><b>Due:</b> {{ inv.due_date }}</p></div>
+</div>
+<div class="boxes">
+<div class="box"><h3>Bill To</h3><b>{{ data.customer_name }}</b><p>{{ data.bill_to_address or '-' }}</p></div>
+<div class="box"><h3>Ship To</h3><b>{{ data.ship_to_name or data.customer_name }}</b><p>{{ data.ship_to_address or data.bill_to_address or '-' }}</p></div>
+</div>
+<table>
+<tr><th>#</th><th>Item</th><th>HSN</th><th>Qty</th><th>Rate</th><th>GST</th><th>Total</th></tr>
+{% for it in data["items"] %}
+<tr><td>{{loop.index}}</td><td>{{it.name}}</td><td>{{it.hsn}}</td><td class="r">{{it.qty}}</td><td class="r">₹{{"%.2f"|format(it.rate)}}</td><td class="r">{{it.gst}}%</td><td class="r">₹{{"%.2f"|format(it.total)}}</td></tr>
+{% endfor %}
+</table>
+<div class="total">Grand Total: ₹{{"%.2f"|format(inv.total)}}</div>
+{% if client.footer_enabled %}<div class="footer">{{ client.footer_text }}</div>{% endif %}
+</div>
+</body>
+</html>
