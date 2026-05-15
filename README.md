@@ -1,16 +1,14 @@
-# SD Invoice Python V1.1 Render DB Fix
+# SD Invoice Python V1.2 Single File Render Fix
 
-Fixed:
-- Internal Server Error on /dashboard
-- Database now initializes automatically when Render starts with gunicorn
-- Added gunicorn in requirements.txt
+This version does not require templates folder.
+
+Replace in GitHub:
+- app.py
+- requirements.txt
 
 Render settings:
-Build Command:
-pip install -r requirements.txt
-
-Start Command:
-gunicorn app:app
+Build Command: pip install -r requirements.txt
+Start Command: gunicorn app:app
 
 Login:
 Super Admin: superadmin / admin123
